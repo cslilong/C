@@ -1,0 +1,62 @@
+C语言访问数据库
+
+在VC的 选项-》目录 中添加mysql的include目录
+把libmysql.dll和libmysql.lib拷贝到VC项目的更目录中
+
+mysql数据库中建立测试数据库和表
+create database db_books;
+
+create table tb_book (
+     ID char(10) not NULL,
+     bookname char(50) not null,
+     author char(50) not null,
+     bookconcern char(100) not null,
+     primary key (ID)
+) engine = MYISAM;
+
+
+#include <windows.h>
+#include <mysql.h>
+
+#pragma  comment(lib,"libmysql.lib")
+
+/*定义数据库相关操作变量*/
+MYSQL mysql;          //
+MYSQL_RES *result;    //定义结果集变量
+MYSQL_ROW row;        // 定义行变量
+
+mysql_init(&mysql);  // 初始化mysql结构
+
+/*连接数据库*/
+    if(!mysql_real_connect(&mysql,"127.0.0.1","root","123","db_books",0,NULL,0))
+    {
+        printf("\n\t 不能连接数据库!\n");
+    }
+    else
+    {
+        /*数据库连接成功*/
+        if((&mysql,"select * from tb_book"))
+        {   //如果查询失败
+            printf("\n\t 查询 tb_book 数据表失败!\n");
+        }
+        else
+        {
+            result=mysql_store_result(&mysql); //获得结果集
+            if(mysql_num_rows(result)!=NULL)
+            {  //有记录的情况,只有有记录取数据才有意义               
+                printf("\t图书编号       图书名         作者        出版社      \n");
+                printf("\t -------------------------------------------------------- \n");
+                while((row=mysql_fetch_row(result)))
+                {   //取出结果集中记录
+                    fprintf(stdout,"\t   %s             %s             %s          %s   \n",row[0],row[1],row[2],row[3]);  //输出这行记录
+                }
+                printf("\t ════════════════════════════ \n");
+            }
+            else
+            {
+                printf("\n\t 没有记录信息 !\n");
+            }
+            mysql_free_result(result);    //释放结果集
+        }
+        mysql_close(&mysql);          //释放连接
+    }
